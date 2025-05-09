@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Project Tracker</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f7f9fc;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .columns {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .column {
+      flex: 1;
+      min-width: 300px;
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      padding: 15px;
+    }
+    .column h2 {
+      font-size: 1.2em;
+      border-bottom: 2px solid #ddd;
+      padding-bottom: 10px;
+      margin-bottom: 15px;
+    }
+
+    /* Status Headings */
+    #board-review h2 {
+      border-color: #facc15;
+      color: #b45309;
+    }
+    #in-progress h2 {
+      border-color: #3b82f6;
+      color: #1e3a8a;
+    }
+    #completed h2 {
+      border-color: #22c55e;
+      color: #065f46;
+    }
+
+    .card {
+      background: #f9fafb;
+      margin: 10px 0;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+      border-left: 6px solid transparent;
+    }
+
+    /* Card border by status */
+    .board-review-card {
+      border-left-color: #facc15;
+    }
+    .in-progress-card {
+      border-left-color: #3b82f6;
+    }
+    .completed-card {
+      border-left-color: #22c55e;
+    }
+
+    .card h3 {
+      margin: 0 0 5px;
+      font-size: 1.1em;
+    }
+    .card p {
+      margin: 0;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Ansley Park Projects</h1>
+  <p id="instruction" style="text-align:center; color:#555; margin-bottom: 20px; font-size: 0.95em;">
+    📌 <strong>Tip:</strong> Click any card to view more details.
+  </p>
+  <div class="columns">
+    <div class="column" id="board-review">
+      <h2>Board Review</h2>
+    </div>
+    <div class="column" id="in-progress">
+      <h2>In Progress</h2>
+    </div>
+    <div class="column" id="completed">
+      <h2>Completed</h2>
+    </div>
+  </div>
+
+  <script>
+    const SHEET_ID = '1XeBTQtvmfWTzWddT9GoD7yrQzfyFqLX2vQXyy4g9RMI';
+    const API_KEY = 'AIzaSyDu82SvRP6HKLwjoFFauP-i45civIHR91U';
+    const RANGE = 'Sheet1!A2:D';
+
+    const statusConfig = {
+      'Board Review': {
+        column: document.getElementById('board-review'),
+        cardClass: 'board-review-card'
+      },
+      'In Progress': {
+        column: document.getElementById('in-progress'),
+        cardClass: 'in-progress-card'
+      },
+      'Completed': {
+        column: document.getElementById('completed'),
+        cardClass: 'completed-card'
+      }
+    };
+
+    fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${RANGE}?key=${API_KEY}`)
+      .then(res => res.json())
+      .then(data => {
+        const rows = data.values;
+        rows.forEach(row => {
+          const [title, summary, status, detail] = row;
+          if (statusConfig[status]) {
+            const card = document.createElement('div');
+            card.className = `card ${statusConfig[status].cardClass}`;
+            card.innerHTML = `
+              <h3>${title}</h3>
+              <p>${summary}</p>
+              <div class="detail hidden">${detail || 'No additional details.'}</div>
+            `;
+            card.addEventListener('click', () => {
+              const detailDiv = card.querySelector('.detail');
+              detailDiv.classList.toggle('hidden');
+            });
+            statusConfig[status].column.appendChild(card);
+          }
+        });
+      })
+      .catch(err => {
+        console.error('Error fetching data:', err);
+      });
+  </script>
+</body>
+
+<style>
+  .detail {
+    margin-top: 10px;
+    padding: 10px;
+    border-top: 1px solid #e5e7eb;
+    color: #444;
+    font-size: 0.95em;
+    transition: all 0.2s ease;
+  }
+  .hidden {
+    display: none;
+  }
+  .card:hover {
+    cursor: pointer;
+    background-color: #eef2f7;
+  }
+</style>
+
+</body>
+</html>
